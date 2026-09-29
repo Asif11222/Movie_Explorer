@@ -9,13 +9,16 @@ import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
   const [selectedShow, setSelectedShow] = useState(null);
+  const [autoPlayTrailer, setAutoPlayTrailer] = useState(false);
 
-  const handleSelectShow = (show) => {
+  const handleSelectShow = (show, autoPlay = false) => {
     setSelectedShow(show);
+    setAutoPlayTrailer(Boolean(autoPlay));
   };
 
   const handleCloseModal = () => {
     setSelectedShow(null);
+    setAutoPlayTrailer(false);
   };
 
   return (
@@ -33,8 +36,12 @@ export default function App() {
           </Routes>
         </div>
 
-        {/* Global Details Modal */}
-        <MovieModal show={selectedShow} onClose={handleCloseModal} />
+        {/* Global Details & Video Trailer Modal */}
+        <MovieModal 
+          show={selectedShow} 
+          onClose={handleCloseModal} 
+          autoPlay={autoPlayTrailer} 
+        />
 
         {/* Footer */}
         <Footer />

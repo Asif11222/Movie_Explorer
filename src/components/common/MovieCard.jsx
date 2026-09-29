@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Calendar, Film, Info } from 'lucide-react';
+import { Star, Calendar, Film, Info, Play } from 'lucide-react';
 import { getYear, formatRating } from '../../services/tvmazeApi';
 
 export default function MovieCard({ show, onSelect }) {
@@ -32,6 +32,18 @@ export default function MovieCard({ show, onSelect }) {
             </span>
           </div>
         )}
+
+        {/* Hover Quick Play Trailer Button */}
+        <button
+          type="button"
+          onClick={() => onSelect(show, true)}
+          className="card-hover-play-btn"
+          id={`play-trailer-card-${show.id}`}
+          aria-label={`Play trailer for ${show.name}`}
+        >
+          <Play size={15} fill="#ffffff" />
+          <span>Watch Trailer</span>
+        </button>
 
         {/* Rating Badge */}
         <div className="rating-badge" aria-label={`Rating: ${rating} out of 10`}>
@@ -70,17 +82,32 @@ export default function MovieCard({ show, onSelect }) {
           </div>
         )}
 
-        {/* See Details Button */}
-        <button 
-          type="button"
-          onClick={() => onSelect(show)}
-          className="btn btn-secondary btn-sm movie-card-btn"
-          id={`see-details-btn-${show.id}`}
-          aria-label={`See details for ${show.name}`}
-        >
-          <Info size={15} />
-          <span>See Details</span>
-        </button>
+        {/* Action Buttons: Details and Watch */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: 'auto' }}>
+          <button 
+            type="button"
+            onClick={() => onSelect(show, false)}
+            className="btn btn-secondary btn-sm"
+            id={`see-details-btn-${show.id}`}
+            aria-label={`See details for ${show.name}`}
+            style={{ padding: '0.45rem 0.5rem', fontSize: '0.8rem' }}
+          >
+            <Info size={14} />
+            <span>Details</span>
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => onSelect(show, true)}
+            className="btn btn-primary btn-sm"
+            id={`watch-trailer-btn-${show.id}`}
+            aria-label={`Watch trailer for ${show.name}`}
+            style={{ padding: '0.45rem 0.5rem', fontSize: '0.8rem' }}
+          >
+            <Play size={14} fill="#ffffff" />
+            <span>Trailer</span>
+          </button>
+        </div>
       </div>
     </article>
   );

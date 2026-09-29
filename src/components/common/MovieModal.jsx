@@ -1,9 +1,16 @@
-import React, { useEffect, useRef } from 'react';
-import { X, Star, Calendar, Clock, Globe, Tv, Film, ExternalLink } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Star, Calendar, Clock, Globe, Tv, Film, ExternalLink, Play, RotateCcw } from 'lucide-react';
 import { getYear, formatRating, stripHtml } from '../../services/tvmazeApi';
+import TrailerPlayer from './TrailerPlayer';
 
-export default function MovieModal({ show, onClose }) {
+export default function MovieModal({ show, onClose, autoPlay = false }) {
   const dialogRef = useRef(null);
+  const [isPlayingTrailer, setIsPlayingTrailer] = useState(autoPlay);
+
+  // Reset trailer state when show changes
+  useEffect(() => {
+    setIsPlayingTrailer(Boolean(autoPlay));
+  }, [show, autoPlay]);
 
   // Close on Escape key and prevent background scroll
   useEffect(() => {
@@ -33,7 +40,7 @@ export default function MovieModal({ show, onClose }) {
   const rating = formatRating(show.rating);
   const releaseYear = getYear(show.premiered);
   const summaryText = stripHtml(show.summary);
-  const networkName = show.network?.name || show.webChannel?.name || 'Unknown Network';
+  const networkName = show.network?.name || show.webChannel?.name || 'TV Broadcast / Streaming';
   const runtime = show.averageRuntime || show.runtime ? `${show.averageRuntime || show.runtime} mins` : 'N/A';
 
   // Backdrop click handler
@@ -64,19 +71,55 @@ export default function MovieModal({ show, onClose }) {
           <X size={20} />
         </button>
 
-        {/* Modal Banner Backdrop */}
-        <div className="modal-banner">
-          {posterImg ? (
-            <img 
-              src={posterImg} 
-              alt={`${show.name} backdrop`} 
-              className="modal-banner-img"
-            />
-          ) : (
-            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1c263d 0%, #0d1222 100%)' }} />
-          )}
-          <div className="modal-banner-gradient" />
-        </div>
+        {/* Video Player or Modal Banner Backdrop */}
+        {isPlayingTrailer ? (
+          <div style={{ position: 'relative' }}>
+            <TrailerPlayer show={show} onClose={() => setIsPlayingTrailer(false)} />
+            <button 
+              type="button" 
+              onClick={() => setIsPlayingTrailer(false)}
+              className="btn btn-secondary btn-sm"
+              style={{ 
+                position: 'absolute', 
+                top: '12px', 
+                left: '12px', 
+                zIndex: 20,
+                background: 'rgba(0,0,0,0.7)',
+                fontSize: '0.78rem',
+                gap: '0.35rem'
+              }}
+            >
+              <RotateCcw size={13} />
+              <span>Back to Banner</span>
+            </button>
+          </div>
+        ) : (
+          <div className="modal-banner">
+            {posterImg ? (
+              <img 
+                src={posterImg} 
+                alt={`${show.name} backdrop`} 
+                className="modal-banner-img"
+              />
+            ) : (
+              <div style={{ width: '100%', height: '100%', background: 'radial-gradient(circle at center, #1e293b 0%, #0d1222 100%)' }} />
+            )}
+            <div className="modal-banner-gradient" />
+
+            {/* Prominent Play Trailer Action Button */}
+            <div className="banner-play-overlay">
+              <button 
+                type="button" 
+                onClick={() => setIsPlayingTrailer(true)} 
+                className="play-circle-btn"
+                id="banner-start-trailer-btn"
+              >
+                <Play size={22} fill="#ffffff" />
+                <span>Watch Trailer &amp; Clips</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Modal Content */}
         <div className="modal-body">
@@ -96,12 +139,26 @@ export default function MovieModal({ show, onClose }) {
 
           {/* Right Column: In-depth Details */}
           <div className="modal-details-col">
-            <h2 className="modal-title text-gradient" id="modal-title">
-              {show.name}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <h2 className="modal-title text-gradient" id="modal-title" style={{ margin: 0 }}>
+                {show.name}
+              </h2>
+
+              {!isPlayingTrailer && (
+                <button 
+                  type="button" 
+                  onClick={() => setIsPlayingTrailer(true)} 
+                  className="btn btn-primary btn-sm"
+                  style={{ gap: '0.35rem', padding: '0.4rem 0.85rem', fontSize: '0.82rem' }}
+                >
+                  <Play size={14} fill="#ffffff" />
+                  <span>Play Trailer</span>
+                </button>
+              )}
+            </div>
 
             {/* Meta Strip */}
-            <div className="modal-meta-strip">
+            <div className="modal-meta-strip" style={{ marginTop: '0.75rem' }}>
               <div className="modal-meta-item">
                 <Star size={16} fill="#fbbf24" color="#fbbf24" />
                 <span style={{ fontWeight: 700, color: '#fbbf24' }}>
@@ -160,6 +217,16 @@ export default function MovieModal({ show, onClose }) {
 
             {/* Modal Bottom Actions */}
             <div className="modal-footer">
+              <button 
+                type="button" 
+                onClick={() => setIsPlayingTrailer(prev => !prev)} 
+                className="btn btn-secondary btn-sm"
+                id="modal-toggle-trailer-btn"
+              >
+                <Play size={15} fill={isPlayingTrailer ? "none" : "#ffffff"} />
+                <span>{isPlayingTrailer ? 'Hide Trailer' : 'Watch Trailer'}</span>
+              </button>
+
               {show.officialSite && (
                 <a 
                   href={show.officialSite} 
@@ -182,7 +249,7 @@ export default function MovieModal({ show, onClose }) {
                   id="modal-tvmaze-link-btn"
                 >
                   <Tv size={15} />
-                  <span>TVMaze Page</span>
+                  <span>TVMaze Info</span>
                   <ExternalLink size={13} />
                 </a>
               )}
